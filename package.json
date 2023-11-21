@@ -1,0 +1,21 @@
+{
+  "name": "poc__mongodb-elasticsearch-benchmark",
+  "private": true,
+  "description": "Proof of concept to benchmark between MongoDB and Elasticsearch",
+  "scripts": {
+    "benchmark": "node --env-file=.env dist/benchmark.js",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.10.0",
+    "mongodb": "^6.3.0"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
