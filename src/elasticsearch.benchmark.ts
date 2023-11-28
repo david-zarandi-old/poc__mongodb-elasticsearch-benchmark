@@ -14,24 +14,35 @@ async function runElasticsearchBenchmark() {
     },
   });
 
+  const INDEX = "document";
   const DOCUMENT_ID = "655cf44b804766e86eae8c56"; // Example document ID from MongoDB
   const sampleParagraphs: Array<BaseParagraph> = require("../seed/sample-paragraphs.json");
 
   for (const sampleParagraph of sampleParagraphs) {
     await client.index({
-      index: `paragraph-${DOCUMENT_ID}`,
+      index: INDEX,
       document: {
-        text: sampleParagraph.text,
+        id: DOCUMENT_ID,
+        paragraph: sampleParagraph.text,
       },
     });
   }
 
+  await client.indices.refresh({ index: INDEX });
+
   async function searchText(searchTerm: string) {
     const results = await client.search({
-      index: `paragraph-${DOCUMENT_ID}`,
+      index: INDEX,
       query: {
-        match: {
-          text: searchTerm,
+        bool: {
+          must: {
+            match: {
+              paragraph: searchTerm,
+            },
+          },
+          filter: {
+            match: { id: DOCUMENT_ID }
+          },
         },
       },
     });
@@ -51,19 +62,22 @@ async function runElasticsearchBenchmark() {
   performance.mark("Update Time");
   for (const additionalParagraph of additionalParagraphs) {
     await client.index({
-      index: `paragraph-${DOCUMENT_ID}`,
+      index: INDEX,
       document: {
-        text: additionalParagraph.text,
+        id: DOCUMENT_ID,
+        paragraph: additionalParagraph.text,
       },
     });
   }
   performance.measure("Update Time [elasticsearch]", "Update Time");
 
+  await client.indices.refresh({ index: INDEX });
+
   performance.mark("Search Time (conclusion) [elasticsearch]");
   await searchText("conclusion");
   performance.measure("Search Time (conclusion) [elasticsearch]", "Search Time (conclusion) [elasticsearch]");
 
-  await client.cat.indices({ index: "paragraph-*", format: "json" });
+  await client.indices.delete({ index: INDEX });
   await client.close();
 }
 
